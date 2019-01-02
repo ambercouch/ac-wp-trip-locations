@@ -114,6 +114,10 @@ if (!function_exists('ac_trip_locations'))
 
 }
 
+/*
+ * Displays the list of destinations
+ */
+
 if (!function_exists('ac_destination_list'))
 {
 
@@ -148,7 +152,11 @@ if (!function_exists('ac_destination_list'))
 
 }
 
-if (!function_exists('ac_destinatiion')){
+/*
+ * Test if the current view is a destination archive and add a header and sub category navigation
+ */
+
+if (!function_exists('ac_destination')){
     function ac_destination(){
         if( is_tax('destination')){
             add_action('loop_start', 'ac_term_header');
@@ -156,9 +164,6 @@ if (!function_exists('ac_destinatiion')){
         }else{
             echo 'not destination';
         }
-
-
-
     }
     add_action('archive_template', 'ac_destination');
 }
@@ -177,6 +182,10 @@ function ac_get_term_oldest_parent($term_id){
 
 }
 
+/*
+ * Creates the list of child destination to display on the destination archives
+ */
+
 function ac_child_destinations(){
 
     $term_id = get_queried_object()->term_id;
@@ -186,6 +195,10 @@ function ac_child_destinations(){
     require('destination-child-list-template.php');
 
 }
+
+/*
+ * Create the header banners for the destination pages
+ */
 
 function ac_term_header(){
     $term = get_term(get_queried_object()->term_id);

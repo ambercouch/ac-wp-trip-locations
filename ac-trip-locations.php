@@ -126,6 +126,7 @@ if (!function_exists('ac_destination_list'))
         $args = array(
             'taxonomy' => 'destination',
             'hide_empty' => false,
+            'parent' => 0
         );
         $terms = get_terms($args);
         $output = '';

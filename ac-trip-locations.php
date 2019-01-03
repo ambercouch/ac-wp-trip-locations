@@ -27,10 +27,14 @@
  */
 
 defined('ABSPATH') or die('You do not have the required permissions');
+
 if (!function_exists('ac_trip_locations_setup'))
 {
     function ac_trip_locations_setup(){
         add_image_size( 'location-header', 2000, 550, true );
+
+        wp_register_style( 'ac-trip-location-styles', plugin_dir_url( __FILE__ ) . 'assets/css/ac-trip-location-styles.css', array(), '20190103' );
+        wp_enqueue_style( 'ac-trip-location-styles' );
 
     }
 }

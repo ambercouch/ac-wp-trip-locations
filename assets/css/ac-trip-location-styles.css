@@ -77,3 +77,76 @@
 .tax-destination .t-entry-text-tc{
     padding-top: 0 !important;
 }
+
+.subject-icon-list__list{
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0 !important;
+}
+
+.subject-icon-list__item{
+    list-style: none;
+    width: 14%;
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+
+.subject-thumb__image{
+    width: 80px;
+    margin: 0 auto;
+}
+.subject-thumb__heading{
+    margin-top: 0 !important;
+    font-size: 16px !important;
+    color: #605e60 !important;
+}
+
+.tax-list__list{
+    display: flex;
+    flex-wrap: wrap;
+}
+.tax-list__item{
+   width: 33.333%;
+    list-style: none;
+    text-align: center;
+}
+
+.tax-thumb__title{
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #414042;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+}
+.tax-thumb__heading{
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    position: absolute;
+    margin-top: 0 !important;
+    color: white !important;
+}
+.tax-thumb__img{
+    width: 100%;
+    display: block;
+}
+.tax-thumb__link{
+    display: block;
+    position: relative;
+}
+
+.tax-thumb__link:hover .tax-thumb__title{
+    opacity: 1;
+}
+
+.subject-header__icon{
+    width: 80px;
+}

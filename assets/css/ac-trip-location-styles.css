@@ -1,14 +1,14 @@
-.destination-header{
+.term-header{
     position: relative;
 }
-.destination-header_img{
+.term-header_img{
    height: 450px;
     max-height: 60vh;
     object-fit: cover;
     width: 100%;
 }
 
-.destination-header__title-image{
+.term-header__title-image{
     position: absolute;
     top: 50%;
     right:50%;
@@ -17,7 +17,7 @@
     max-width: 100%;
     margin: 0 auto;
 }
-.destination-header__title-img{
+.term-header__title-img{
     width: 300px;
     display: block;
     float: right;

@@ -28,200 +28,52 @@
 
 defined('ABSPATH') or die('You do not have the required permissions');
 
-if (!function_exists('ac_trip_locations_setup'))
-{
-    function ac_trip_locations_setup(){
-        add_image_size( 'location-header', 2000, 550, true );
+require_once  'lib/setup.php';
 
-        wp_register_style( 'ac-trip-location-styles', plugin_dir_url( __FILE__ ) . 'assets/css/ac-trip-location-styles.css', array(), '20190103' );
-        wp_enqueue_style( 'ac-trip-location-styles' );
+require_once  'lib/tax-subjects.php';
 
-    }
-}
-add_action('init', 'ac_trip_locations_setup');
+require_once  'lib/taxonomies.php';
 
-if (!function_exists('ac_trip_locations'))
-{
+require_once  'lib/tax-destinations.php';
 
-    function  ac_trip_locations() {
-//Tiles
-        $labels = array(
-            'name' => _x('Trip Locations', 'post type general name'),
-            'singular_name' => _x('Trip Location', 'post type singular name'),
-            'add_new' => _x('Add New', 'Trip Location'),
-            'add_new_item' => __('Add New Trip Location'),
-            'edit_item' => __('Edit Trip Location'),
-            'new_item' => __('New Trip Location'),
-            'all_items' => __('All Trip Locations'),
-            'view_item' => __('View Trip Location'),
-            'search_items' => __('Search Trip Locations'),
-            'not_found' => __('No Trip Locations found'),
-            'not_found_in_trash' => __('No Trip Locations found in the trash'),
-            'parent_item_colon' => '',
-            'menu_name' => 'Trip Locations'
-        );
-        $args = array(
-            'labels' => $labels,
-            'menu_icon' => 'dashicons-performance',
-            'description' => 'Trip Locations',
-            'public' => true,
-            'menu_position' => 20,
-            'supports' => array('title','editor','author','thumbnail','excerpt','trackbacks','custom-fields','comments','revisions','page-attributes','post-formats'),
-            'has_archive' => 'trip'
-        );
-        register_post_type('trip_location', $args);
-        //Destinations
-        $labels = array(
-            'name'              => _x( 'Destinations', 'taxonomy general name' ),
-            'singular_name'     => _x( 'Destination', 'taxonomy singular name' ),
-            'search_items'      => __( 'Search Destinations' ),
-            'all_items'         => __( 'All Destinations' ),
-            'edit_item'         => __( 'Edit Destination' ),
-            'update_item'       => __( 'Update Destination' ),
-            'add_new_item'      => __( 'Add New Destination' ),
-            'new_item_name'     => __( 'New Tile Destination' ),
-            'menu_name'         => __( 'Destinations' ),
-        );
-        $args = array(
-            'hierarchical'      => true,
-            'labels'            => $labels,
-            'show_ui'           => true,
-            'show_admin_column' => true,
-            'query_var'         => true,
-            'rewrite'           => array( 'slug' => 'destination' ),
-        );
-        register_taxonomy( 'destination', array( 'trip_location' ), $args );
 
-        //Subjects
-        $labels = array(
-            'name'              => _x( 'Subjects', 'taxonomy general name' ),
-            'singular_name'     => _x( 'Subject', 'taxonomy singular name' ),
-            'search_items'      => __( 'Search Subjects' ),
-            'all_items'         => __( 'All Subjects' ),
-            'edit_item'         => __( 'Edit Subject' ),
-            'update_item'       => __( 'Update Subject' ),
-            'add_new_item'      => __( 'Add New Subject' ),
-            'new_item_name'     => __( 'New Tile Subject' ),
-            'menu_name'         => __( 'Subjects' ),
-        );
-        $args = array(
-            'hierarchical'      => false,
-            'labels'            => $labels,
-            'show_ui'           => true,
-            'show_admin_column' => true,
-            'query_var'         => true,
-            'rewrite'           => array( 'slug' => 'subject' ),
-        );
-        register_taxonomy( 'subject', array( 'trip_location' ), $args );
-    }
-    add_action('init', 'ac_trip_locations');
+add_action('loop_start', 'ac_trip_location');
+function ac_trip_location($post_object){
 
-}
+    $posts = $post_object->posts;
+    $subjects = '<ul><li>subject 1</li> <li>Subject 2</li></ul>';
 
-/*
- * Displays the list of Subjects and icons
- */
+    foreach ($posts as $post){
+        $post_id = $post->ID;
 
-if (!function_exists('ac_subject_list'))
-{
-    function ac_subject_list($atts)
-    {
-        $args = array(
-            'taxonomy' => 'subject',
-            'hide_empty' => false
-        );
-        $terms = get_terms($args);
+        $trip_gallery = get_field('trip_gallery',  $post_id );
+
+        $subjectArray = wp_get_post_terms($post_id,'subject');
         $output = '';
-        $output .= '<div class="subject-icon-list">';
-        $output .= '<ul class="subject-icon-list__list">';
-        foreach ($terms as $term){
-            $subject_title =$term->name;
-            $term_id = $term->taxonomy.'_'.$term->term_id;
-            $subject_icon = get_field('subject_icon', $term_id);
 
-            $term_link = get_term_link($term);
-            $output .= '<li class="subject-icon-list__item">';
-            ob_start();
-            ?>
-            <?php require('subject-icon-thumb.php') ?>
-            <?php
-            $output .= ob_get_contents();
-            ob_end_clean();
-            $output .= '</li>';
-        }
-        $output .= '</ul>';
-        $output .= '</div>';
-
-        return $output;
-    }
-
-    add_shortcode('ac_subjects', 'ac_subject_list');
-}
-
-/*
- * Displays the list of taxonomies destinations and subjects
- */
-
-if (!function_exists('ac_tax_list'))
-{
-
-    function ac_tax_list($atts)
-    {
-        extract(shortcode_atts(array(
-            'tax' => 'destination',
-        ), $atts));
-
-        $args = array(
-            'taxonomy' => $tax,
-            'hide_empty' => false,
-            'parent' => 0
-        );
-        $terms = get_terms($args);
-        $output = '';
-        $output .= '<div class="'.$tax.'-list tax-list">';
-        $output .= '<ul class="'.$tax.'-list__list tax-list__list">';
-        foreach ($terms as $term){
-            $tax_title =$term->name;
-            $term_id = $term->taxonomy.'_'.$term->term_id;
-            if (get_field($tax.'_image', $term_id)){
-                $tax_image = get_field($tax.'_image', $term_id)['sizes']['thumbnail'];
-            }else{
-                $tax_image = 'https://via.placeholder.com/400?text=Placeholder+'.$tax_title;
+        if($trip_gallery){
+            $output .= '<div class="c-trip-gallery">';
+            $output .= '<ul class="c-trip-gallery__list">';
+            foreach ($trip_gallery as $image){
+                $output .= '<li class="c-trip-gallery__item" >';
+                $output .= '<a class="c-trip-gallery__link" href="'.$image['url'].'">';
+                $output .= '<img class="c-trip-gallery__img" src="' . $image['sizes']['location-gallery-thumb'] . '" >';
+                $output .= '</a>';
+                $output .= '</li>';
+                //$output .= $image['sizes']['thumbnail'];
             }
+            $output .='</ul>';
+            $output .='</div>';
 
-            $tax_link = get_term_link($term);
-            $output .= '<li class="'.$tax.'-list__item tax-list__item">';
-            ob_start();
-            ?>
-            <?php require($tax.'-thumb.php') ?>
-            <?php
-            $output .= ob_get_contents();
-            ob_end_clean();
-            $output .= '</li>';
         }
-        $output .= '</ul>';
-        $output .= '</div>';
-        return $output;
-    }
 
-    add_shortcode('ac_tax_list', 'ac_tax_list');
 
-}
 
-/*
- * Test if the current view is a destination archive and add a header and sub category navigation
- */
-
-if (!function_exists('ac_destination')){
-    function ac_destination(){
-        if( is_tax('destination')){
-            add_action('loop_start', 'ac_term_header');
-            add_action('loop_start', 'ac_child_destinations');
-        }else{
-            //echo 'not destination';
+        if($post->post_type == 'trip_location'){
+            $post->post_content = $post->post_content . $output;
         }
     }
-    add_action('archive_template', 'ac_destination');
+
 }
 
 
@@ -248,7 +100,7 @@ function ac_location_by_subject(){
     $term_tax = 'subject';
     $term = get_term($term_id);
     $term_name = $term->name;
-    $subject_icon = get_field('subject_icon', $term_tax.'_'.$term_id);
+    $subject_icon = get_field('subject_icon_2', $term_tax.'_'.$term_id);
     $output = '';
 
     $args = array(
@@ -260,12 +112,12 @@ function ac_location_by_subject(){
 
     $output .= "<div class='subject-destinations'>";
     $output .= "<div class='ac-column-wrapper'>";
-    $output .= "<div class='ac-column-wrapper--column'>";
+    $output .= "<div class='ac-column-wrapper--column-1'>";
     $output .= "<div class='subject-destinations__subject-header'>";
     $output .= "<div class='subject-header'>";
 
     $output .= "<div class='subject-header__title'>";
-    $output .= "<h1 class='subject-header__heading'>". $term_name ."</h1>";
+    $output .= "<h1 class='subject-header__heading h3'>". $term_name ."</h1>";
     $output .= "</div>";
 
     $output .= "<div class='subject-header__icon'>";
@@ -275,7 +127,11 @@ function ac_location_by_subject(){
     $output .= "</div>";
     $output .= "</div>";
     $output .= "</div>";
-    $output .= "<div class='ac-column-wrapper__column'>";
+    $output .= "<div class='ac-column-wrapper__column-2'>";
+
+    $output .= "<div class='subject-destinations__destination-list'>";
+    $output .= "<div class='destination-title-list'>";
+    $output .= "<ul class='destination-title-list__list'>";
 
     foreach ($destinations as $destination){
 
@@ -292,45 +148,48 @@ function ac_location_by_subject(){
         foreach ( $destination_children as  $destination_child){
 
             $destination_name = $destination_child->name;
-            $output .= "<div class='subject-destinations__destination-list'>";
-            $output .= "<div class='destination-list'>";
-            $output .= "<ul class='destination-list__list'>";
-            $output .= "<li class='destination-list__li'>";
 
-            $output .= "<div class='destination'>";
-            $output .= "<div class='destination__title'>";
-            $output .= "<h2 class='destination__heading h1'>" . $destination_name . "</h2>";
-            $output .= "</div><!-- /.destination__location-title -->";
-            $output .= "<div class='destination__location-list' >";
-            $output .= "<div class='location-list' >";
+                        $output .= "<li class='destination-title-list__item'>";
+
+                            $output .= "<div class='destination'>";
+                                $output .= "<div class='destination__title'>";
+                                    $output .= "<h2 class='destination__heading h3'>" . $destination_name . "</h2>";
+                                $output .= "</div><!-- /.destination__location-title -->";
+                                $output .= "<div class='destination__location-list' >";
+                                    $output .= "<div class='location-list' >";
 
 
-            $args = array(
-                'subject' => $term->slug,
-                'destination' => $destination_child->slug,
-            );
-            $query = new WP_Query($args);
-            if ($query->have_posts()) :
-                $output .= "<ul class='location-list__list' >";
-                while ($query->have_posts()) : $query->the_post();
-                    $output .= "<li class='location-list__item' >";
-                    $output .= "<div class='location' >";
-                    $output .= "<a class='location__link' href='". get_permalink() ."'";
-                    $output .= "<span>". get_the_title() . "</span>";
-                    $output .= "</a>";
-                    $output .= "</div>";
-                    $output .= "</li><!-- /.location-list__item -->";
-                endwhile;
-                $output .= "</ul><!-- /.location-list__list -->";
-            endif;
+                                    $args = array(
+                                        'subject' => $term->slug,
+                                        'destination' => $destination_child->slug,
+                                    );
+                                    $query = new WP_Query($args);
+                                    if ($query->have_posts()) :
+                                        $output .= "<ul class='location-list__list' >";
+                                        while ($query->have_posts()) : $query->the_post();
+                                            $output .= "<li class='location-list__item' >";
+                                            $output .= "<div class='location' >";
+                                            $output .= "<a class='location__link' href='". get_permalink() ."'";
+                                            $output .= "<span>". get_the_title() . "</span>";
+                                            $output .= "</a>";
+                                            $output .= "</div>";
+                                            $output .= "</li><!-- /.location-list__item -->";
+                                        endwhile;
+                                        $output .= "</ul><!-- /.location-list__list -->";
+                                    endif;
 
-            $output .= "</div><!-- /.location-list -->";
-            $output .= "</div><!-- /.destination__location-list -->";
-            $output .= "</div><!-- /.destination -->";
+                                    $output .= "</div><!-- /.location-list -->";
+                                $output .= "</div><!-- /.destination__location-list -->";
+                            $output .= "</div><!-- /.destination -->";
+                        $output .= "</li><!-- /.destination-list__li -->";
+
 
         }
 
     }
+    $output .= "</ul><!-- .destination-list__list -->";
+    $output .= "</div><!-- .destination-list -->";
+    $output .= "</div><!-- .subject__destination-list -->";
 
     $output .= "</div><!-- /.ac-column-wrapper__column -->";
     $output .= "</div><!-- /.ac-column-wrapper--3 -->";
@@ -339,6 +198,7 @@ function ac_location_by_subject(){
     echo $output;
 
 }
+
 function ac_get_term_oldest_parent($term_id){
 
     $term = get_term( $term_id, get_query_var('taxonomy') );
@@ -356,12 +216,12 @@ function ac_get_term_oldest_parent($term_id){
 /*
  * Creates the list of child destination to display on the destination archives
  */
-
 function ac_child_destinations(){
 
     $term_id = get_queried_object()->term_id;
     $term_oldest_parent = ac_get_term_oldest_parent($term_id);
     $child_terms = get_term_children($term_oldest_parent->term_id, 'destination');
+
 
     require('destination-child-list-template.php');
 
@@ -383,4 +243,20 @@ function ac_term_header(){
 
     require('term-header-template.php');
 
+}
+
+/*
+ * Create the header banners for the destination pages
+ */
+
+function ac_term_description(){
+    $term = get_term(get_queried_object()->term_id);
+     $term_name = $term->name;
+     $term_slug = $term->slug;
+     $term_description = $term->description;
+     $tax_slug = get_query_var('taxonomy');
+     $term_id = $tax_slug.'_'.get_queried_object()->term_id;
+//     $term_image = get_field($tax_slug.'_image', $term_id);
+//     $term_title_image = get_field($tax_slug.'_title_image', $term_id);
+    require('term-description-template.php');
 }
